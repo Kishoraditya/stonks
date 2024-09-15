@@ -24,13 +24,13 @@ To try out the stock price prediction models:
 1. **Clone the Repository**:
 
    ```bash
-   git clone <url-of-this-repo>
+   git clone https://github.com/Kishoraditya/stonks.git
    ```
 
 2. **Navigate to the Project Directory**:
 
    ```bash
-   cd stock-prediction
+   cd stonks
    ```
 
 3. **Start a Virtual Environment**:
