@@ -1,0 +1,42 @@
+# Ensure all predictions are Series with the same length
+    prediction_length = 30
+    analysis['linear_regression_prediction'] = pd.Series([data['Close'].mean()] * prediction_length)
+    analysis['arima_prediction'] = pd.Series([data['Close'].mean()] * prediction_length)
+    analysis['prophet_prediction'] = pd.DataFrame({'yhat': [data['Close'].mean()] * prediction_length})
+    analysis['xgboost_prediction'] = pd.Series([data['Close'].mean()] * prediction_length)
+    analysis['lstm_prediction'] = pd.Series([data['Close'].mean()] * prediction_length)
+    analysis['random_forest_prediction'] = pd.Series([data['Close'].mean()] * prediction_length)
+    analysis['holt_winters_prediction'] = pd.Series([data['Close'].mean()] * prediction_length)
+    for model, prediction in[]:analysis[f'{model}_days_to_achieve'] = calculate_days_to_achieve(current_price, prediction, avg_daily_change)
+    
+
+
+
+
+
+def predict_holt_winters(data):
+    data = data.asfreq('D')
+    if len(data) < 14:  # Less than two weeks of data
+        # Use a simple average forecast
+        avg_price = data['Close'].mean()
+        forecast = pd.Series([avg_price] * 30, index=pd.date_range(start=data.index[-1] + pd.Timedelta(days=1), periods=30))
+    elif len(data) < 30:  # Less than a month of data
+        # Use a simple moving average forecast
+        ma = data['Close'].rolling(window=min(7, len(data))).mean()
+        last_ma = ma.iloc[-1]
+        forecast = pd.Series([last_ma] * 30, index=pd.date_range(start=data.index[-1] + pd.Timedelta(days=1), periods=30))
+    else:
+        # Use Holt-Winters model
+        try:
+            model = ExponentialSmoothing(data['Close'], seasonal_periods=7, trend='add', seasonal='add')
+            fitted_model = model.fit()
+            forecast = fitted_model.forecast(30)
+        except Exception as e:
+            print(f"Holt-Winters model failed: {e}")
+            # Fallback to moving average
+            ma = data['Close'].rolling(window=7).mean()
+            last_ma = ma.iloc[-1]
+            forecast = pd.Series([last_ma] * 30, index=pd.date_range(start=data.index[-1] + pd.Timedelta(days=1), periods=30))
+    
+    return forecast
+

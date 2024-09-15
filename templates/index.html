@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Tracker</title>
+</head>
+<body>
+    <h1>Stock Tracker</h1>
+    <form action="{{ url_for('stock') }}" method="post">
+        <input type="text" name="symbol" placeholder="Enter stock symbol">
+        <input type="submit" value="Get Stock Info">
+    </form>
+</body>
+</html>
+

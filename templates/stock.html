@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ symbol }} Stock Info</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ symbol }} Stock Info</h1>
+    
+    <h2>Stock Chart</h2>
+    {{ chart | safe }}
+    
+    <h2>Technical Analysis</h2>
+    <h3>Moving Averages</h3>
+    <p>50-day Moving Average: {{ "%.2f"|format(analysis.moving_average_50.iloc[-1]) }}</p>
+    
+    <h3>Relative Strength Index (RSI)</h3>
+    <p>14-day RSI: {{ "%.2f"|format(analysis.rsi_14.iloc[-1]) }}</p>
+    
+    <h3>Bollinger Bands</h3>
+    <p>Upper Band: {{ "%.2f"|format(analysis.upper_band.iloc[-1]) }}</p>
+    <p>Middle Band: {{ "%.2f"|format(analysis.middle_band.iloc[-1]) }}</p>
+    <p>Lower Band: {{ "%.2f"|format(analysis.lower_band.iloc[-1]) }}</p>
+    
+    <h2>Price Predictions</h2>
+    <table>
+        <tr>
+            <th>Model</th>
+            <th>Last Predicted Price</th>
+            <th>Change from Current</th>
+            <th>Trend</th>
+        </tr>
+        {% set current_price = data['Close'].iloc[-1] %}
+        {% for model, prediction in [
+            ('Linear Regression', analysis.linear_regression_prediction[-1]),
+            ('ARIMA', analysis.arima_prediction[-1]),
+            ('Prophet', analysis.prophet_prediction.yhat.iloc[-1]),
+            ('XGBoost', analysis.xgboost_prediction[-1]),
+            ('LSTM', analysis.lstm_prediction[-1]),
+            ('random_forest', analysis.random_forest_prediction[-1])
+        ] %}
+            {% set prediction_value = prediction.item() if prediction is not string and prediction.size == 1 else prediction %}
+            {% set change = ((prediction_value - current_price) / current_price) * 100 %}
+            <tr>
+                <td>{{ model }}</td>
+                <td>{{ "%.2f"|format(prediction) }}</td>
+                <td>{{ "%.2f%%"|format(change) }}</td>
+                <td>{% if change > 0 %}Rise{% elif change < 0 %}Fall{% else %}No Change{% endif %}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Prophet Prediction Details</h3>
+    <p>Upper bound: {{ "%.2f"|format(analysis.prophet_prediction.yhat_upper.iloc[-1]) }}</p>
+    <p>Lower bound: {{ "%.2f"|format(analysis.prophet_prediction.yhat_lower.iloc[-1]) }}</p>
+
+    <h2>Recent Data</h2>
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Open</th>
+            <th>High</th>
+            <th>Low</th>
+            <th>Close</th>
+            <th>Volume</th>
+        </tr>
+        {% for index, row in data.tail(10).iterrows() %}
+        <tr>
+            <td>{{ index.date() }}</td>
+            <td>{{ "%.2f"|format(row['Open']) }}</td>
+            <td>{{ "%.2f"|format(row['High']) }}</td>
+            <td>{{ "%.2f"|format(row['Low']) }}</td>
+            <td>{{ "%.2f"|format(row['Close']) }}</td>
+            <td>{{ row['Volume'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <h2>Analysis Process and Algorithms Used</h2>
+
+<h3>Technical Indicators</h3>
+
+<h4>Moving Average</h4>
+<p><strong>Description:</strong> A simple moving average calculation that smooths out price fluctuations to identify trends.</p>
+<p><strong>Real-world Applications:</strong> Widely used in financial markets for trend identification and support/resistance levels.</p>
+<p><strong>Our Usage:</strong> We calculate a 50-day moving average to identify medium-term trends in the stock price.</p>
+<p><strong>Parameters:</strong> Window size = 50 days</p>
+
+<h4>RSI (Relative Strength Index)</h4>
+<p><strong>Description:</strong> A momentum oscillator that measures the speed and change of price movements.</p>
+<p><strong>Real-world Applications:</strong> Used by traders to identify overbought or oversold conditions in various financial instruments.</p>
+<p><strong>Our Usage:</strong> We calculate the RSI to determine potential buy or sell signals based on overbought/oversold conditions.</p>
+<p><strong>Parameters:</strong> Window size = 14 days</p>
+
+<h4>Bollinger Bands</h4>
+<p><strong>Description:</strong> A volatility indicator consisting of a middle band with upper and lower bands at standard deviation levels.</p>
+<p><strong>Real-world Applications:</strong> Used in various financial markets to measure market volatility and identify potential breakouts.</p>
+<p><strong>Our Usage:</strong> We use Bollinger Bands to identify potential breakouts or trend reversals in the stock price.</p>
+<p><strong>Parameters:</strong> Window size = 20 days, Standard deviation = 2</p>
+
+<h3>Prediction Models</h3>
+
+<h4>Linear Regression</h4>
+<p><strong>Description:</strong> A simple linear model that assumes a linear relationship between input features and the target variable.</p>
+<p><strong>Real-world Applications:</strong> Used in various fields for simple trend analysis and forecasting.</p>
+<p><strong>Our Usage:</strong> We use LinearRegression from sklearn to forecast future stock prices based on historical closing prices.</p>
+<p><strong>Parameters:</strong> Default parameters from sklearn's LinearRegression</p>
+
+<h4>ARIMA (AutoRegressive Integrated Moving Average)</h4>
+<p><strong>Description:</strong> A time series forecasting model that captures auto-regressive and moving average components.</p>
+<p><strong>Real-world Applications:</strong> Widely used in economic and financial forecasting, especially for short-term predictions.</p>
+<p><strong>Our Usage:</strong> We use ARIMA to capture trend and seasonality in stock prices for short-term forecasting.</p>
+<p><strong>Parameters:</strong> Order = (1,1,1)</p>
+
+<h4>Prophet</h4>
+<p><strong>Description:</strong> A time series forecasting model developed by Facebook that automatically detects yearly, weekly, and daily seasonality.</p>
+<p><strong>Real-world Applications:</strong> Used for business forecasting tasks, especially when dealing with multiple seasonalities.</p>
+<p><strong>Our Usage:</strong> We use Prophet to provide robust predictions that account for various seasonal patterns in stock prices.</p>
+<p><strong>Parameters:</strong> Default parameters from Prophet</p>
+
+<h4>XGBoost</h4>
+<p><strong>Description:</strong> A gradient boosting algorithm known for its high performance and speed.</p>
+<p><strong>Real-world Applications:</strong> Widely used in various machine learning tasks, including financial predictions and risk assessment.</p>
+<p><strong>Our Usage:</strong> We use XGBoost to predict closing prices based on multiple features (Open, High, Low, Volume).</p>
+<p><strong>Parameters:</strong> n_estimators = 1000, objective = 'reg:squarederror'</p>
+
+<h4>LSTM (Long Short-Term Memory)</h4>
+<p><strong>Description:</strong> A type of recurrent neural network capable of learning long-term dependencies in sequence data.</p>
+<p><strong>Real-world Applications:</strong> Used in various sequence prediction tasks, including natural language processing and time series forecasting.</p>
+<p><strong>Our Usage:</strong> We use LSTM for sequence prediction of stock prices, capturing complex temporal patterns.</p>
+<p><strong>Parameters:</strong> Lookback period = 60 days, 2 LSTM layers with 50 units each, followed by a dense layer</p>
+
+<h4>Random Forest</h4>
+<p><strong>Description:</strong> An ensemble learning method that constructs multiple decision trees and merges their predictions.</p>
+<p><strong>Real-world Applications:</strong> Used in various predictive modeling tasks across industries due to its robustness and ability to handle non-linear relationships.</p>
+<p><strong>Our Usage:</strong> We use Random Forest to capture complex patterns in the stock data for price prediction.</p>
+<p><strong>Parameters:</strong> n_estimators = 100</p>
+
+<h3>Visualization</h3>
+<p><strong>Description:</strong> Interactive data visualization for comprehensive technical analysis.</p>
+<p><strong>Real-world Applications:</strong> Widely used in financial dashboards and trading platforms for data presentation and analysis.</p>
+<p><strong>Our Usage:</strong> We use Plotly to create interactive candlestick charts with overlays of moving averages, Bollinger Bands, and RSI.</p>
+<p><strong>Parameters:</strong> Candlestick chart with additional traces for technical indicators</p>
+
+    <a href="{{ url_for('index') }}">Back to search</a>
+
+
+    <h3>Algorithm Performance Metrics</h3>
+<table>
+    <tr>
+        <th>Metric</th>
+        <th>Linear Regression</th>
+        <th>ARIMA</th>
+        <th>Prophet</th>
+        <th>XGBoost</th>
+        <th>LSTM</th>
+        <th>Random Forest</th>
+    </tr>
+    <tr>
+        <td>Accuracy</td>
+        <td>{{ analysis.linear_regression_accuracy }}</td>
+        <td>{{ analysis.arima_accuracy }}</td>
+        <td>{{ analysis.prophet_accuracy }}</td>
+        <td>{{ analysis.xgboost_accuracy }}</td>
+        <td>{{ analysis.lstm_accuracy }}</td>
+        <td>{{ analysis.random_forest_accuracy }}</td>
+    </tr>
+    <tr>
+        <td>Precision</td>
+        <td>{{ analysis.linear_regression_precision }}</td>
+        <td>{{ analysis.arima_precision }}</td>
+        <td>{{ analysis.prophet_precision }}</td>
+        <td>{{ analysis.xgboost_precision }}</td>
+        <td>{{ analysis.lstm_precision }}</td>
+        <td>{{ analysis.random_forest_precision }}</td>
+    </tr>
+    <tr>
+        <td>Recall</td>
+        <td>{{ analysis.linear_regression_recall }}</td>
+        <td>{{ analysis.arima_recall }}</td>
+        <td>{{ analysis.prophet_recall }}</td>
+        <td>{{ analysis.xgboost_recall }}</td>
+        <td>{{ analysis.lstm_recall }}</td>
+        <td>{{ analysis.random_forest_recall }}</td>
+    </tr>
+    <tr>
+        <td>F1-score</td>
+        <td>{{ analysis.linear_regression_f1 }}</td>
+        <td>{{ analysis.arima_f1 }}</td>
+        <td>{{ analysis.prophet_f1 }}</td>
+        <td>{{ analysis.xgboost_f1 }}</td>
+        <td>{{ analysis.lstm_f1 }}</td>
+        <td>{{ analysis.random_forest_f1 }}</td>
+    </tr>
+    <tr>
+        <td>AUC</td>
+        <td>{{ analysis.linear_regression_auc }}</td>
+        <td>{{ analysis.arima_auc }}</td>
+        <td>{{ analysis.prophet_auc }}</td>
+        <td>{{ analysis.xgboost_auc }}</td>
+        <td>{{ analysis.lstm_auc }}</td>
+        <td>{{ analysis.random_forest_auc }}</td>
+    </tr>
+    <tr>
+        <td>ROC</td>
+        <td>{{ analysis.linear_regression_roc }}</td>
+        <td>{{ analysis.arima_roc }}</td>
+        <td>{{ analysis.prophet_roc }}</td>
+        <td>{{ analysis.xgboost_roc }}</td>
+        <td>{{ analysis.lstm_roc }}</td>
+        <td>{{ analysis.random_forest_roc }}</td>
+    </tr>
+    <tr>
+        <td>Log Loss</td>
+        <td>{{ analysis.linear_regression_log_loss }}</td>
+        <td>{{ analysis.arima_log_loss }}</td>
+        <td>{{ analysis.prophet_log_loss }}</td>
+        <td>{{ analysis.xgboost_log_loss }}</td>
+        <td>{{ analysis.lstm_log_loss }}</td>
+        <td>{{ analysis.random_forest_log_loss }}</td>
+    </tr>
+    <tr>
+        <td>MSE</td>
+        <td>{{ analysis.linear_regression_mse }}</td>
+        <td>{{ analysis.arima_mse }}</td>
+        <td>{{ analysis.prophet_mse }}</td>
+        <td>{{ analysis.xgboost_mse }}</td>
+        <td>{{ analysis.lstm_mse }}</td>
+        <td>{{ analysis.random_forest_mse }}</td>
+    </tr>
+    <tr>
+        <td>MAE</td>
+        <td>{{ analysis.linear_regression_mae }}</td>
+        <td>{{ analysis.arima_mae }}</td>
+        <td>{{ analysis.prophet_mae }}</td>
+        <td>{{ analysis.xgboost_mae }}</td>
+        <td>{{ analysis.lstm_mae }}</td>
+        <td>{{ analysis.random_forest_mae }}</td>
+    </tr>
+    <tr>
+        <td>MAPE</td>
+        <td>{{ analysis.linear_regression_mape }}</td>
+        <td>{{ analysis.arima_mape }}</td>
+        <td>{{ analysis.prophet_mape }}</td>
+        <td>{{ analysis.xgboost_mape }}</td>
+        <td>{{ analysis.lstm_mape }}</td>
+        <td>{{ analysis.random_forest_mape }}</td>
+    </tr>
+    <tr>
+        <td>R-squared</td>
+        <td>{{ analysis.linear_regression_r2 }}</td>
+        <td>{{ analysis.arima_r2 }}</td>
+        <td>{{ analysis.prophet_r2 }}</td>
+        <td>{{ analysis.xgboost_r2 }}</td>
+        <td>{{ analysis.lstm_r2 }}</td>
+        <td>{{ analysis.random_forest_r2 }}</td>
+    </tr>
+    <tr>
+        <td>RMSE</td>
+        <td>{{ analysis.linear_regression_rmse }}</td>
+        <td>{{ analysis.arima_rmse }}</td>
+        <td>{{ analysis.prophet_rmse }}</td>
+        <td>{{ analysis.xgboost_rmse }}</td>
+        <td>{{ analysis.lstm_rmse }}</td>
+        <td>{{ analysis.random_forest_rmse }}</td>
+    </tr>
+</table>
+
+
+</body>
+</html>
