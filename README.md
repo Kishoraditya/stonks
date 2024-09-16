@@ -32,14 +32,14 @@ You can quickly get started with the stock price prediction models using GitHub 
 
 4. **Activate the Virtual Environment**: Once the Codespace is ready, run the following commands in the terminal:
 
- ```bash
-   pipenv shell
+   ```bash
+      pipenv shell
    ```
 
 5. **Install Dependencies**: Install the necessary dependencies by running:
 
-  ```bash
-   pip install -r requirements.txt
+   ```bash
+      pip install -r requirements.txt
    ```
 
 6. **Run the Application**: Finally, execute the application with:
@@ -80,6 +80,5 @@ If you prefer to set up the project locally, follow these steps:
    ```bash
    python app.py
    ```
-
 
 This README provides a comprehensive overview of the project, including the tools and methods used, as well as instructions for getting started. The "Next Steps" section suggests advanced algorithms and methods that can be explored to further enhance the project's capabilities.

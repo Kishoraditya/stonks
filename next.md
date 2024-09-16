@@ -1,4 +1,4 @@
-## Next Steps
+# Next Steps
 
 To further enhance the stock prediction capabilities of this project, consider exploring the following advanced algorithms and tools:
 

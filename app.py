@@ -1,3 +1,9 @@
+# Copyright [2024] [Kishoraditya]
+#
+# Licensed under the Creative Commons Attribution-NonCommercial 4.0 International License. 
+# To view a copy of this license, visit https://creativecommons.org/licenses/by-nc/4.0/
+
+
 from flask import Flask, render_template, request, redirect, url_for
 import yfinance as yf
 from analysis import analyze_stock
